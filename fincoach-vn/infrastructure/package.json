@@ -1,0 +1,35 @@
+{
+  "name": "fincoach-vn-infrastructure",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk",
+    "deploy": "cdk deploy --all --require-approval never",
+    "destroy": "cdk destroy --all --force",
+    "synth": "cdk synth"
+  },
+  "keywords": [
+    "aws",
+    "cdk",
+    "fincoach"
+  ],
+  "author": "Team 261",
+  "license": "MIT",
+  "description": "AWS CDK infrastructure for FinCoach VN",
+  "dependencies": {
+    "@types/node": "^24.0.14",
+    "aws-cdk-lib": "^2.204.0",
+    "constructs": "^10.4.2",
+    "source-map-support": "^0.5.21",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/jest": "^30.0.0",
+    "aws-cdk": "^2.1020.2",
+    "jest": "^30.0.4",
+    "ts-node": "^10.9.2"
+  }
+}

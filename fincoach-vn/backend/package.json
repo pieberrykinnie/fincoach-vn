@@ -1,0 +1,16 @@
+{
+  "name": "fincoach-vn-backend",
+  "version": "1.0.0",
+  "description": "Backend Lambda functions for FinCoach VN",
+  "scripts": {
+    "test": "python -m pytest tests/",
+    "test:cov": "python -m pytest tests/ --cov=functions --cov-report=html",
+    "lint": "flake8 functions/ utils/",
+    "format": "black functions/ utils/",
+    "build:layer": "cd layers/common && bash build.sh",
+    "dev": "sam local start-api --template template.yaml"
+  },
+  "keywords": ["fincoach", "lambda", "serverless"],
+  "author": "Team 261",
+  "license": "MIT"
+}
