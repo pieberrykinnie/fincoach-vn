@@ -1,0 +1,13 @@
+graph TD
+    subgraph Frontend
+        A[React + Vite + Tailwind] -- REST --> B((API Gateway / FastAPI))
+    end
+    subgraph Backend
+        B -- CRUD --> D[(SQLite / DynamoDB)]
+        B -- RAG --> F[Vector Store / Bedrock]
+        B -- Notifications --> G[Alert Table]
+    end
+    subgraph Gamification
+        D -- Points --> H[Wisdom Engine]
+        H --> D
+    end

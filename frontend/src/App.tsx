@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import './App.css'
+import JarChart from './components/JarChart'
 
 interface Jar {
   id: number;
@@ -27,6 +28,12 @@ function App() {
   const [insightQuery, setInsightQuery] = useState('')
   const [insightAnswer, setInsightAnswer] = useState('')
 
+  // loading & error states
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+  const [alerts, setAlerts] = useState<any[]>([])
+  const [leaderboard, setLeaderboard] = useState<any[]>([])
+
   const API_URL = 'http://localhost:8000'
 
   const authHeader = token ? { Authorization: `Bearer ${token}` } : {}
@@ -34,21 +41,24 @@ function App() {
   // fetch jars & transactions
   useEffect(() => {
     if (!token) return
-    fetch(`${API_URL}/jars`, { headers: authHeader })
-      .then(r => r.json())
-      .then(data => {
-        const arr = Object.values(data) as any
-        setJars(arr)
+    setLoading(true)
+    Promise.all([
+      fetch(`${API_URL}/jars`, { headers: authHeader }),
+      fetch(`${API_URL}/transactions`, { headers: authHeader }),
+      fetch(`${API_URL}/points`, { headers: authHeader }),
+      fetch(`${API_URL}/alerts`, { headers: authHeader }),
+      fetch(`${API_URL}/leaderboard`),
+    ])
+      .then(async ([jRes, tRes, pRes, aRes, lbRes]) => {
+        setJars(Object.values(await jRes.json()) as any)
+        setTransactions(Object.values(await tRes.json()) as any)
+        setPoints((await pRes.json()).points)
+        setAlerts(Object.values(await aRes.json()) as any)
+        const lbObj = await lbRes.json()
+        setLeaderboard(Object.values(lbObj))
       })
-    fetch(`${API_URL}/transactions`, { headers: authHeader })
-      .then(r => r.json())
-      .then(data => {
-        const arr = Object.values(data) as any
-        setTransactions(arr)
-      })
-    fetch(`${API_URL}/points`, { headers: authHeader })
-      .then(r => r.json())
-      .then(data => setPoints(data.points))
+      .catch((e) => setError(String(e)))
+      .finally(() => setLoading(false))
   }, [token])
 
   const handleLogin = (endpoint: 'login' | 'register') => {
@@ -113,11 +123,11 @@ function App() {
   }
 
   return (
-    <div className="dashboard-container">
+    <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h2>Welcome, {username || 'User'}</h2>
 
       <section>
-        <h3>Jar Balances</h3>
+        <h3 className="text-xl font-semibold">Jar Balances</h3>
         <table>
           <thead>
             <tr>
@@ -168,14 +178,36 @@ function App() {
       </section>
 
       <section>
-        <h3>Wisdom Points: {points}</h3>
+        <h3 className="text-xl font-semibold">Wisdom Points: {points}</h3>
+      </section>
+
+      {/* Alerts */}
+      {alerts.length > 0 && (
+        <section className="bg-red-100 p-4 rounded">
+          <h3 className="font-semibold text-red-600">Alerts</h3>
+          <ul>
+            {alerts.map((a) => (
+              <li key={a.id}>{a.message}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {/* Leaderboard */}
+      <section>
+        <h3 className="text-xl font-semibold">Leaderboard</h3>
+        <ol className="list-decimal list-inside">
+          {leaderboard.map((u, idx) => (
+            <li key={idx}>{u.username} – {u.points} pts</li>
+          ))}
+        </ol>
       </section>
 
       <section>
         <h3>Financial Insights</h3>
         <input placeholder="Ask a question..." value={insightQuery} onChange={e => setInsightQuery(e.target.value)} />
         <button onClick={handleInsight}>Get Insight</button>
-        <p>{insightAnswer}</p>
+        <p className="whitespace-pre-wrap">{insightAnswer}</p>
       </section>
     </div>
   )

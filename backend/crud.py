@@ -72,6 +72,12 @@ def create_transaction(db: Session, user_id: int, tx: schemas.TransactionCreate,
     db.add(db_tx)
     db.commit()
     db.refresh(db_tx)
+
+    # Check alert threshold: if balance exceeds allocation_percent (treated as limit)
+    if jar and jar.balance >= jar.allocation_percent:
+        message = f"{jar.name} jar exceeded its limit!"
+        create_alert(db, user_id, jar.name, message)
+
     return db_tx
 
 
@@ -93,3 +99,35 @@ def add_points(db: Session, user_id: int, points: int):
 def get_points(db: Session, user_id: int) -> int:
     record = db.query(models.WisdomPoint).filter(models.WisdomPoint.owner_id == user_id).first()
     return record.points if record else 0
+
+# Alert operations
+
+
+def create_alert(db: Session, user_id: int, jar_name: str, message: str):
+    alert = models.Alert(owner_id=user_id, jar_name=jar_name, message=message)
+    db.add(alert)
+    db.commit()
+    db.refresh(alert)
+    return alert
+
+
+def get_alerts(db: Session, user_id: int):
+    return (
+        db.query(models.Alert)
+        .filter(models.Alert.owner_id == user_id, models.Alert.resolved == 0)
+        .order_by(models.Alert.created_at.desc())
+        .all()
+    )
+
+
+# Leaderboard
+
+
+def get_leaderboard(db: Session, limit: int = 10):
+    return (
+        db.query(models.User.username, models.WisdomPoint.points)
+        .join(models.WisdomPoint, models.WisdomPoint.owner_id == models.User.id)
+        .order_by(models.WisdomPoint.points.desc())
+        .limit(limit)
+        .all()
+    )

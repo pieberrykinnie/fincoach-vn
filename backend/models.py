@@ -19,6 +19,9 @@ class User(Base):
     points = relationship(
         "WisdomPoint", back_populates="owner", uselist=False, cascade="all, delete-orphan"
     )
+    alerts = relationship(
+        "Alert", back_populates="owner", cascade="all, delete-orphan"
+    )
 
 
 class Jar(Base):
@@ -54,3 +57,16 @@ class WisdomPoint(Base):
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("User", back_populates="points")
+
+
+class Alert(Base):
+    __tablename__ = "alerts"
+
+    id = Column(Integer, primary_key=True, index=True)
+    jar_name = Column(String, index=True)
+    message = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    resolved = Column(Integer, default=0)  # 0 = unresolved, 1 = resolved
+
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("User", back_populates="alerts")

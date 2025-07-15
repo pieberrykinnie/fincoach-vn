@@ -75,3 +75,25 @@ class WisdomPoint(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+# Alerts
+
+
+class Alert(BaseModel):
+    id: int
+    jar_name: str
+    message: str
+    created_at: datetime
+    resolved: int
+
+    class Config:
+        orm_mode = True
+
+
+# Leaderboard
+
+
+class LeaderboardUser(BaseModel):
+    username: str
+    points: int

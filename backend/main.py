@@ -5,6 +5,7 @@ from typing import Dict
 
 from . import models, schemas, crud
 from .database import engine, Base, get_db
+from fastapi.responses import JSONResponse
 
 # Create tables
 Base.metadata.create_all(bind=engine)
@@ -126,6 +127,24 @@ def add_transaction(tx: schemas.TransactionCreate, current_user: models.User = D
 def list_transactions(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
     txs = crud.get_transactions(db, current_user.id)
     return {tx.id: tx for tx in txs}
+
+
+# -------------- Alerts -----------------
+
+
+@app.get("/alerts", response_model=Dict[int, schemas.Alert])
+def list_alerts(current_user: models.User = Depends(get_current_user), db: Session = Depends(get_db)):
+    alerts = crud.get_alerts(db, current_user.id)
+    return {a.id: a for a in alerts}
+
+
+# -------------- Leaderboard -----------------
+
+
+@app.get("/leaderboard", response_model=Dict[int, schemas.LeaderboardUser])
+def leaderboard(db: Session = Depends(get_db)):
+    lb = crud.get_leaderboard(db)
+    return {idx + 1: {"username": u, "points": p} for idx, (u, p) in enumerate(lb)}
 
 
 # -------------- Gamification -----------------
